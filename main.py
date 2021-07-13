@@ -2,8 +2,11 @@
 import os, chardet, codecs, re
 
 # 文件类型扩展名  文件列表
-FileType, FileList = [], []
+import struct
 
+FileType, FileList = [], []
+CFG_SET_BOM = True
+CFG_SET_BOM_TYPE = "utf-8"
 
 def get_file_list(Dir):
     """ 获取指定目录下所有指定类型文件
@@ -18,7 +21,7 @@ def get_file_list(Dir):
     for subfolder in folderList:
         get_file_list(subfolder)
 
-
+allCode = {}
 def convert_2_target_coding(coding='utf-8'):
     """ 转换成目标编码格式
     """
@@ -26,12 +29,29 @@ def convert_2_target_coding(coding='utf-8'):
         with open(filepath, 'rb') as f:
             data = f.read()
             codeType = chardet.detect(data)['encoding']
-        coding = 'utf-8'
-        if codeType not in (coding, 'ascii'):
+        # if codeType not in (coding, 'ascii', 'UTF-8-SIG', 'Windows-1252', 'ISO-8859-1'):
+        if True:
+            print(codeType)
+            if not allCode.get(codeType):
+                allCode[codeType] = 1
+            else:
+                allCode[codeType] += 1
             try:
-                with codecs.open(filepath, 'r', 'gbk') as f:
+                with codecs.open(filepath, 'r', codeType) as f:
                     content = f.read()
-                with codecs.open(filepath, 'w', coding) as f:
+                #写入bom
+                if CFG_SET_BOM:
+                    if CFG_SET_BOM_TYPE == "utf-8":
+                        bom_bytes = [0xEF, 0xBB, 0xBF]
+                        with codecs.open(filepath, 'wb')as f:
+                            for x in bom_bytes:
+                                a = struct.pack('B', x)
+                                f.write(a)
+                    else:
+                        print("不支持此bom类型")
+                        break
+
+                with codecs.open(filepath, 'a', coding) as f:
                     f.write(content)
                 print(filepath + '\n')
             except:
@@ -43,11 +63,12 @@ if __name__ == '__main__':
     # WorkDir = str(input('input target folder\n\t:'))
     WorkDir = ruike_project_path
     # 目标编码格式
-    TargetCoding = str(input('target coding(default to utf-8)\n\t:')).lower()
+    TargetCoding = "utf-8"
     # 文件类型扩展名
-    FileType = re.split(r'\s+', str(input('file type(filename extension, such as .c .h)\n\t:')))
+    FileType = [".cpp", ".h"]
     os.chdir(WorkDir)
     get_file_list(WorkDir)
     convert_2_target_coding(TargetCoding)
+    print(allCode)
 
 
