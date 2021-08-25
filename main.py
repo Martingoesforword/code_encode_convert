@@ -69,9 +69,9 @@ def convert_2_target_coding(coding='utf-8'):
 
 if __name__ == '__main__':
     # 获取目录
-    ruike_project_path = "D:\workplace\cpp\SSS_operating_system"
+    clike_files_path = "D:\\workplace\\cpp\\tencentsdk"
     # WorkDir = str(input('input target folder\n\t:'))
-    WorkDir = ruike_project_path
+    WorkDir = clike_files_path
     # 目标编码格式
     TargetCoding = "utf-8"
     # 文件类型扩展名
