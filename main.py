@@ -54,17 +54,25 @@ def convert_2_target_coding():
                 allCode[codeType] += 1
 
             # 实际的编码转换
-            with codecs.open(filepath, 'r', codeType) as f:
-                content = f.read()
+            try:
+                with codecs.open(filepath, 'r', codeType) as f:
+                    content = f.read()
+            except UnicodeDecodeError:
+                with codecs.open(filepath, 'r', errors="ignore") as f:
+                    content = f.read()
             if CFG_SET_BOM:
                 # 写入bom签名头
                 if CFG_SET_BOM_TYPE == "utf-8":
                     # 写入utf-8 bom签名头
                     bom_bytes = [0xEF, 0xBB, 0xBF]
-                    with codecs.open(filepath, 'wb')as f:
-                        for x in bom_bytes:
-                            byte = struct.pack('B', x)
-                            f.write(byte)
+                    try:
+                        with codecs.open(filepath, 'wb')as f:
+                            for x in bom_bytes:
+                                byte = struct.pack('B', x)
+                                f.write(byte)
+                    except PermissionError:
+                        print("文件 "+str(filepath)+"没有权限！")
+                        continue
                 else:
                     print("不支持此bom类型")
                     break
@@ -84,7 +92,7 @@ def convert_2_target_coding():
 
 if __name__ == '__main__':
     # 获取目录
-    clike_files_path = "D:\\workplace\\cpp\\RuiKeStd_Soui2.x-master"
+    clike_files_path = "D:\\workplace\\cpp\\SSS_operating_system"
     # 设置工作目录
     WorkDir = clike_files_path
     os.chdir(WorkDir)
