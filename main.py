@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os, chardet, codecs, re
-
 # 文件类型扩展名  文件列表
 import struct
 
@@ -11,6 +10,7 @@ CFG_SET_BOM_TYPE = "utf-8"
 TargetCoding = "utf-8"
 # 包括文件类型扩展名
 FileType = [".c", ".h", ".cpp", ".hpp", ".cc"]
+FolderFilter = "z_tools"
 
 
 def get_file_list(Dir):
@@ -24,13 +24,14 @@ def get_file_list(Dir):
     FileList.extend(fileList)
     # 递归字文件夹
     for subfolder in folderList:
-        get_file_list(subfolder)
+        if subfolder.find(FolderFilter) == -1:
+            get_file_list(subfolder)
 
 
 allCode = {}
 
 
-def convert_2_target_coding():
+def convert_2_target_coding(fromCoding= None):
     """ 转换成目标编码格式
     """
     for filepath in FileList:
@@ -38,7 +39,10 @@ def convert_2_target_coding():
         # 获取文件编码
         with open(filepath, 'rb') as f:
             data = f.read()
-            codeType = chardet.detect_all(data)[0]['encoding']
+            codeTypes = chardet.detect_all(data)
+            codeType = codeTypes[0]['encoding']
+            if fromCoding and codeTypes[0]['confidence'] < 0.7:
+                codeType = fromCoding
             # 2312范围较窄，使用18030替换
             if codeType == "GB2312":
                 codeType = "gb18030"
@@ -92,14 +96,16 @@ def convert_2_target_coding():
 
 if __name__ == '__main__':
     # 获取目录
-    clike_files_path = "D:\\workplace\\cpp\\SSS_operating_system"
+    clike_files_path = "D:\\workplace\\cpp\\SSS_operating_system\\30days_REF\\"
+    default_coding = "SHIFT-JIS"
     # 设置工作目录
     WorkDir = clike_files_path
     os.chdir(WorkDir)
+
 
     # 获取所有需要转化编码的文件列表
     get_file_list(WorkDir)
 
     # 对整个文件列表进行编码转化
-    convert_2_target_coding()
+    convert_2_target_coding(default_coding)
     print(allCode)
